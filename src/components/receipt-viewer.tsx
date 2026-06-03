@@ -2,7 +2,7 @@
 
 import { CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
 import { useState } from "react";
-import type { SentinelReceipt } from "@/lib/sentinel/types";
+import type { SentinelReceipt, WalrusEvidencePack } from "@/lib/sentinel/types";
 
 interface VerifyResponse {
   verification: {
@@ -10,6 +10,7 @@ interface VerifyResponse {
     expectedHash: string;
     actualHash: string;
   };
+  evidence: WalrusEvidencePack;
 }
 
 export function ReceiptViewer({ receipt }: { receipt: SentinelReceipt | null }) {
@@ -76,10 +77,34 @@ export function ReceiptViewer({ receipt }: { receipt: SentinelReceipt | null }) 
         {loading ? "Verifying..." : "Verify from Walrus"}
       </button>
       {result ? (
-        <p className={result.verification.ok ? "verify-ok" : "verify-bad"}>
-          {result.verification.ok ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
-          {result.verification.ok ? "Evidence hash matches receipt." : "Evidence hash mismatch."}
-        </p>
+        <>
+          <p className={result.verification.ok ? "verify-ok" : "verify-bad"}>
+            {result.verification.ok ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+            {result.verification.ok ? "Evidence hash matches receipt." : "Evidence hash mismatch."}
+          </p>
+          <dl className="verified-evidence">
+            <div>
+              <dt>Fetched from Walrus</dt>
+              <dd>{result.evidence.appName}</dd>
+            </div>
+            <div>
+              <dt>Stored verdict</dt>
+              <dd>{result.evidence.risk.verdict}</dd>
+            </div>
+            <div>
+              <dt>Network checked</dt>
+              <dd>{result.evidence.context.network}</dd>
+            </div>
+            <div>
+              <dt>Findings</dt>
+              <dd>{result.evidence.risk.findings.length}</dd>
+            </div>
+            <div>
+              <dt>Evidence created</dt>
+              <dd>{new Date(result.evidence.createdAt).toLocaleString()}</dd>
+            </div>
+          </dl>
+        </>
       ) : null}
       {error ? <p className="error-text">{error}</p> : null}
     </section>
