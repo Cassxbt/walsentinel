@@ -1,7 +1,7 @@
 "use client";
 
 import { Bot, Check, Copy, DatabaseZap, Loader2, Play, Route, Shield } from "lucide-react";
-import { useMemo, useState } from "react";
+import { type CSSProperties, useMemo, useState } from "react";
 import { DEMO_SCENARIOS } from "@/lib/sentinel/demo-scenarios";
 import type { RiskResult, SentinelReceipt, WalrusEvidencePack } from "@/lib/sentinel/types";
 import { ReceiptViewer } from "./receipt-viewer";
@@ -81,6 +81,13 @@ export function SentinelDashboard() {
       2
     );
   }, [agentDecision, result]);
+  const runState = loading ? "checking" : result ? "complete" : "idle";
+  const runSteps = [
+    "Normalize intent",
+    "Pull Tatum context",
+    "Score policy",
+    "Write Walrus receipt"
+  ];
 
   async function copyValue(key: string, value: string) {
     let nextStatus = key;
@@ -149,20 +156,35 @@ export function SentinelDashboard() {
           <p>{scenario.intent.description}</p>
           <span>{scenario.intent.kind}</span>
         </div>
+        <ol className={`state-track ${runState}`} aria-label="Pre-flight progress">
+          {runSteps.map((step, index) => (
+            <li key={step} style={{ "--step-index": index } as CSSProperties}>
+              <span />
+              {step}
+            </li>
+          ))}
+        </ol>
         <button className="primary-action" type="button" onClick={runAnalysis} disabled={loading}>
           {loading ? <Loader2 className="spin" size={18} /> : <Play size={18} />}
-          Run pre-flight check
+          {loading ? "Running checks" : "Run pre-flight check"}
         </button>
         {error ? <p className="error-text">{error}</p> : null}
       </section>
 
-      <section className="panel">
+      <section className="panel verdict-panel" aria-live="polite">
         <div className="panel-title">
           <Shield size={20} />
           <h2>Sentinel verdict</h2>
         </div>
-        {result ? (
-          <>
+        {loading ? (
+          <div className="verdict-loading">
+            <span className="monitor-skeleton short" />
+            <span className="monitor-skeleton" />
+            <span className="monitor-skeleton" />
+            <span className="monitor-skeleton" />
+          </div>
+        ) : result ? (
+          <div className="verdict-reveal" key={result.receipt.receiptId}>
             <VerdictBadge verdict={result.risk.verdict} />
             <p className="score">Risk score: {result.risk.score}/100</p>
             <ul className="findings">
@@ -180,7 +202,7 @@ export function SentinelDashboard() {
                 </li>
               )}
             </ul>
-          </>
+          </div>
         ) : (
           <p className="muted">No verdict yet.</p>
         )}
@@ -233,7 +255,13 @@ export function SentinelDashboard() {
           <DatabaseZap size={20} />
           <h2>Walrus evidence</h2>
         </div>
-        {result ? (
+        {loading ? (
+          <div className="receipt-loading">
+            <span className="monitor-skeleton" />
+            <span className="monitor-skeleton" />
+            <span className="monitor-skeleton tall" />
+          </div>
+        ) : result ? (
           <dl className="receipt-grid">
             <div>
               <dt>Blob ID</dt>

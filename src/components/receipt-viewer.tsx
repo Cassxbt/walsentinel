@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, ShieldCheck, XCircle } from "lucide-react";
 import { useState } from "react";
 import type { SentinelReceipt, WalrusEvidencePack } from "@/lib/sentinel/types";
 
@@ -54,7 +54,7 @@ export function ReceiptViewer({ receipt }: { receipt: SentinelReceipt | null }) 
   }
 
   return (
-    <section className="panel">
+    <section className="panel receipt-panel" aria-live="polite">
       <div className="panel-title">
         <ShieldCheck size={20} />
         <h2>Receipt verifier</h2>
@@ -74,8 +74,16 @@ export function ReceiptViewer({ receipt }: { receipt: SentinelReceipt | null }) 
         </div>
       </dl>
       <button className="primary-action" type="button" onClick={verify} disabled={loading}>
-        {loading ? "Verifying..." : "Verify from Walrus"}
+        {loading ? <Loader2 className="spin" size={17} /> : null}
+        {loading ? "Verifying receipt" : "Verify from Walrus"}
       </button>
+      {loading ? (
+        <div className="verification-track">
+          <span>Fetch Walrus blob</span>
+          <span>Recompute evidence hash</span>
+          <span>Compare receipt</span>
+        </div>
+      ) : null}
       {result ? (
         <>
           <p className={result.verification.ok ? "verify-ok" : "verify-bad"}>

@@ -1,4 +1,5 @@
 import { SentinelDashboard } from "@/components/sentinel-dashboard";
+import { SiteNav } from "@/components/site-nav";
 
 const proofPoints = [
   { value: "3", label: "demo verdicts" },
@@ -32,18 +33,7 @@ export default function Home() {
         Skip to demo
       </a>
 
-      <nav className="site-nav" aria-label="Primary navigation">
-        <a className="brand-mark" href="#top" aria-label="Walrus Sentinel home">
-          <span>WS</span>
-          Walrus Sentinel
-        </a>
-        <div className="nav-links">
-          <a href="#demo">Demo</a>
-          <a href="#agent">Agent API</a>
-          <a href="#architecture">Architecture</a>
-          <a href="#security">Security</a>
-        </div>
-      </nav>
+      <SiteNav />
 
       <section className="project-hero">
         <div className="hero-copy">
@@ -58,6 +48,9 @@ export default function Home() {
             </a>
             <a className="secondary-link" href="#architecture">
               View architecture
+            </a>
+            <a className="tertiary-link" href="/monitor">
+              Open monitor
             </a>
           </div>
         </div>
