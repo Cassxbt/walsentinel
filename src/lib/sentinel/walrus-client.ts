@@ -9,6 +9,7 @@ interface WalrusClientOptions {
   fetcher?: Fetcher;
   maxAttempts?: number;
   retryDelayMs?: number;
+  requestTimeoutMs?: number;
 }
 
 interface NewlyCreatedResponse {
@@ -71,6 +72,7 @@ export class WalrusClient {
   private readonly fetcher: Fetcher;
   private readonly maxAttempts: number;
   private readonly retryDelayMs: number;
+  private readonly requestTimeoutMs: number;
 
   constructor(options: WalrusClientOptions) {
     this.publisherUrl = trimTrailingSlash(options.publisherUrl);
@@ -79,6 +81,7 @@ export class WalrusClient {
     this.fetcher = options.fetcher ?? fetch;
     this.maxAttempts = options.maxAttempts ?? 3;
     this.retryDelayMs = options.retryDelayMs ?? 500;
+    this.requestTimeoutMs = options.requestTimeoutMs ?? 15_000;
   }
 
   async storeJson(value: unknown): Promise<WalrusStoreResult> {
@@ -106,7 +109,7 @@ export class WalrusClient {
     for (let attempt = 1; attempt <= this.maxAttempts; attempt += 1) {
       let response: Response;
       try {
-        response = await this.fetcher(url, init);
+        response = await this.fetchWithTimeout(url, init);
       } catch (error) {
         lastError = error;
         if (attempt < this.maxAttempts) {
@@ -130,6 +133,28 @@ export class WalrusClient {
     }
 
     throw lastError instanceof Error ? lastError : new Error("Walrus request failed");
+  }
+
+  private async fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, this.requestTimeoutMs);
+
+    try {
+      return await this.fetcher(url, {
+        ...init,
+        signal: controller.signal
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error("Walrus request timed out");
+      }
+
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
 }
 

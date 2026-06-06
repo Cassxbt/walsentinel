@@ -5,6 +5,8 @@ import { useState } from "react";
 import type { SentinelReceipt, WalrusEvidencePack } from "@/lib/sentinel/types";
 
 interface VerifyResponse {
+  status?: "propagating";
+  error?: string;
   verification: {
     ok: boolean;
     expectedHash: string;
@@ -33,8 +35,13 @@ export function ReceiptViewer({ receipt }: { receipt: SentinelReceipt | null }) 
     const payload = (await response.json()) as VerifyResponse | { error: string };
     setLoading(false);
 
+    if (response.status === 202 && "error" in payload) {
+      setError(payload.error ?? "Walrus evidence is still propagating. Try verification again shortly.");
+      return;
+    }
+
     if (!response.ok || "error" in payload) {
-      setError("error" in payload ? payload.error : "Verification failed");
+      setError("error" in payload ? payload.error ?? "Verification failed" : "Verification failed");
       return;
     }
 

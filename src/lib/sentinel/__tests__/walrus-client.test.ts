@@ -119,4 +119,28 @@ describe("WalrusClient", () => {
     await expect(client.storeJson({ hello: "walrus" })).rejects.toThrow("Walrus HTTP 400");
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
+
+  it("times out stalled aggregator reads", async () => {
+    const fetcher = vi.fn(
+      (_url: string | URL | Request, init?: RequestInit) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener("abort", () => {
+            const error = new Error("The operation was aborted.");
+            error.name = "AbortError";
+            reject(error);
+          });
+        })
+    );
+
+    const client = new WalrusClient({
+      publisherUrl: "https://publisher.example",
+      aggregatorUrl: "https://aggregator.example",
+      epochs: 1,
+      fetcher,
+      maxAttempts: 1,
+      requestTimeoutMs: 1
+    });
+
+    await expect(client.readJson("blob-timeout")).rejects.toThrow("Walrus request timed out");
+  });
 });
