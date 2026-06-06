@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Walrus Sentinel",
-  description: "Verifiable pre-flight checks for AI agents on Sui"
+  description: "Live Tatum-powered Sui reviews with Walrus-backed evidence receipts"
 };
 
 const geist = Geist({

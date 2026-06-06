@@ -141,7 +141,7 @@ export function MonitorDashboard() {
         </div>
         <h2>Runtime health</h2>
         <p>
-          The server can evaluate agent actions and write Walrus evidence when all required services are
+          The server can evaluate live agent actions and write Walrus evidence when all required services are
           configured.
         </p>
         <dl className="monitor-metrics">

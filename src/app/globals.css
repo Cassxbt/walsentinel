@@ -513,8 +513,15 @@ select:disabled {
 }
 
 .intent-box span,
-.muted {
+.muted,
+.catalog-source {
   color: var(--muted);
+}
+
+.catalog-source {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .primary-action {

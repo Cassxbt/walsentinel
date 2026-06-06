@@ -8,8 +8,7 @@ const envSchema = z.object({
   WALRUS_PUBLISHER_URL: z.url(),
   WALRUS_AGGREGATOR_URL: z.url(),
   WALRUS_EPOCHS: z.coerce.number().int().positive().default(1),
-  NEXT_PUBLIC_APP_URL: z.url().default("http://localhost:3000"),
-  NEXT_PUBLIC_DEMO_ACTOR_ADDRESS: z.string().optional()
+  NEXT_PUBLIC_APP_URL: z.url().default("http://localhost:3000")
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

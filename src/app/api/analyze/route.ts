@@ -7,14 +7,22 @@ import { TatumSuiClient } from "@/lib/sentinel/tatum-sui-client";
 import type { AgentIntent } from "@/lib/sentinel/types";
 import { WalrusClient } from "@/lib/sentinel/walrus-client";
 
+const suiAddressSchema = z
+  .string()
+  .regex(/^0x[0-9a-fA-F]{1,64}$/, "Expected a Sui address")
+  .refine((value) => !/^0x0+$/i.test(value), "Zero address is not accepted for live analysis");
+const mistAmountSchema = z
+  .string()
+  .regex(/^[1-9][0-9]*$/, "Expected a positive MIST amount");
+
 const intentSchema = z.object({
   id: z.string().min(1),
   kind: z.enum(["sui-transfer", "package-interaction"]),
   network: z.enum(["mainnet", "testnet", "devnet"]),
-  actor: z.string().min(3),
-  target: z.string().min(3),
-  amountMist: z.string().optional(),
-  packageId: z.string().optional(),
+  actor: suiAddressSchema,
+  target: suiAddressSchema,
+  amountMist: mistAmountSchema.optional(),
+  packageId: suiAddressSchema.optional(),
   moduleName: z.string().optional(),
   functionName: z.string().optional(),
   description: z.string().min(1),

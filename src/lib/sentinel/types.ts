@@ -98,7 +98,7 @@ export interface SentinelReceipt {
   createdAt: string;
 }
 
-export interface DemoScenario {
+export interface ReviewScenario {
   label: string;
   expectedVerdict: SentinelVerdict;
   intent: AgentIntent;

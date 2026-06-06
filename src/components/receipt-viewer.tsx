@@ -48,7 +48,7 @@ export function ReceiptViewer({ receipt }: { receipt: SentinelReceipt | null }) 
           <ShieldCheck size={20} />
           <h2>Receipt verifier</h2>
         </div>
-        <p className="muted">No receipt selected.</p>
+        <p className="muted">Run a live review to produce a Walrus receipt for verification.</p>
       </section>
     );
   }

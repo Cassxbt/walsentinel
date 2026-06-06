@@ -5,7 +5,7 @@ import { SiteNav } from "@/components/site-nav";
 
 export const metadata: Metadata = {
   title: "Monitor | Walrus Sentinel",
-  description: "Operational readiness monitor for Walrus Sentinel"
+  description: "Runtime readiness monitor for Walrus Sentinel"
 };
 
 export default function MonitorPage() {
@@ -15,17 +15,17 @@ export default function MonitorPage() {
       <section className="monitor-hero">
         <div>
           <p className="eyebrow">Operations monitor</p>
-          <h1>Runtime readiness for the Sentinel guardrail.</h1>
+          <h1>Runtime readiness for live agent reviews.</h1>
         </div>
         <p>
-          Track whether the demo can score an agent action, pull Sui context through Tatum, and verify
+          Confirm that Sentinel can discover live Sui actions, pull chain context through Tatum, and verify
           Walrus-backed evidence without exposing credentials.
         </p>
       </section>
       <MonitorDashboard />
       <footer className="site-footer">
         <span>Walrus Sentinel</span>
-        <Link href="/#demo">Return to live demo</Link>
+        <Link href="/#demo">Return to review console</Link>
       </footer>
     </main>
   );

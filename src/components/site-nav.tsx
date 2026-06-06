@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/#demo", label: "Demo", route: "/" },
+  { href: "/#demo", label: "Console", route: "/" },
   { href: "/monitor", label: "Monitor", route: "/monitor" },
   { href: "/#agent", label: "API handoff", route: null }
 ];
@@ -21,7 +21,7 @@ export function SiteNav() {
       </Link>
       <div className="nav-status" aria-label="Runtime status">
         <Activity size={15} />
-        pre-flight online
+        live pre-flight
       </div>
       <div className="nav-links">
         {navItems.map((item) => {

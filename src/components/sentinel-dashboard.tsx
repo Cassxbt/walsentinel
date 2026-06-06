@@ -1,9 +1,8 @@
 "use client";
 
 import { Bot, Check, Copy, DatabaseZap, Loader2, Play, Route, Shield } from "lucide-react";
-import { type CSSProperties, useMemo, useState } from "react";
-import { DEMO_SCENARIOS } from "@/lib/sentinel/demo-scenarios";
-import type { RiskResult, SentinelReceipt, WalrusEvidencePack } from "@/lib/sentinel/types";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
+import type { ReviewScenario, RiskResult, SentinelReceipt, SuiNetwork, WalrusEvidencePack } from "@/lib/sentinel/types";
 import { ReceiptViewer } from "./receipt-viewer";
 import { VerdictBadge } from "./verdict-badge";
 
@@ -13,19 +12,41 @@ interface AnalyzeResponse {
   receipt: SentinelReceipt;
 }
 
+interface ScenarioCatalogResponse {
+  source: string;
+  network: SuiNetwork;
+  generatedAt: string;
+  scenarios: ReviewScenario[];
+}
+
 export function SentinelDashboard() {
-  const [scenarioId, setScenarioId] = useState(DEMO_SCENARIOS[0].intent.id);
+  const [catalog, setCatalog] = useState<ScenarioCatalogResponse | null>(null);
+  const [scenarioId, setScenarioId] = useState<string | null>(null);
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [history, setHistory] = useState<SentinelReceipt[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [catalogLoading, setCatalogLoading] = useState(true);
 
+  const scenarios = useMemo(() => catalog?.scenarios ?? [], [catalog]);
   const scenario = useMemo(
-    () => DEMO_SCENARIOS.find((item) => item.intent.id === scenarioId) ?? DEMO_SCENARIOS[0],
-    [scenarioId]
+    () => scenarios.find((item) => item.intent.id === scenarioId) ?? null,
+    [scenarioId, scenarios]
   );
   const agentPayload = useMemo(() => {
+    if (!scenario) {
+      return JSON.stringify(
+        {
+          endpoint: "/api/scenarios",
+          method: "GET",
+          status: "live catalog required"
+        },
+        null,
+        2
+      );
+    }
+
     const intent = scenario.intent;
     return JSON.stringify(
       {
@@ -47,7 +68,7 @@ export function SentinelDashboard() {
       null,
       2
     );
-  }, [scenario.intent]);
+  }, [scenario]);
   const agentDecision =
     result?.risk.verdict === "ALLOW"
       ? "Proceed"
@@ -55,13 +76,13 @@ export function SentinelDashboard() {
         ? "Request review"
         : result?.risk.verdict === "BLOCK"
           ? "Refuse execution"
-          : "Awaiting pre-flight";
+          : "Awaiting live review";
   const agentResponse = useMemo(() => {
     if (!result) {
       return JSON.stringify(
         {
           status: "pending",
-          nextAction: "call /api/agent/check before execution"
+          nextAction: "load a live scenario, then call /api/agent/check before execution"
         },
         null,
         2
@@ -89,6 +110,46 @@ export function SentinelDashboard() {
     "Write Walrus receipt"
   ];
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadScenarios() {
+      try {
+        const response = await fetch("/api/scenarios", { cache: "no-store" });
+        const payload = (await response.json()) as ScenarioCatalogResponse | { error: string };
+        if (!active) {
+          return;
+        }
+
+        if (!response.ok || "error" in payload) {
+          setCatalog(null);
+          setScenarioId(null);
+          setError("error" in payload ? payload.error : "Live scenario catalog unavailable.");
+          return;
+        }
+
+        setCatalog(payload);
+        setScenarioId(payload.scenarios[0]?.intent.id ?? null);
+      } catch {
+        if (active) {
+          setCatalog(null);
+          setScenarioId(null);
+          setError("Live scenario catalog unavailable.");
+        }
+      } finally {
+        if (active) {
+          setCatalogLoading(false);
+        }
+      }
+    }
+
+    void loadScenarios();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   async function copyValue(key: string, value: string) {
     let nextStatus = key;
     try {
@@ -110,6 +171,11 @@ export function SentinelDashboard() {
   }
 
   async function runAnalysis() {
+    if (!scenario) {
+      setError("Select a live scenario before running Sentinel.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResult(null);
@@ -139,23 +205,43 @@ export function SentinelDashboard() {
           <h2>Agent action</h2>
         </div>
         <label>
-          Demo scenario
+          Live agent action
           <select
-            value={scenarioId}
+            value={scenarioId ?? ""}
             onChange={(event) => selectScenario(event.target.value)}
-            disabled={loading}
+            disabled={loading || catalogLoading || !scenarios.length}
           >
-            {DEMO_SCENARIOS.map((item) => (
+            {scenarios.map((item) => (
               <option key={item.intent.id} value={item.intent.id}>
                 {item.label}
               </option>
             ))}
           </select>
         </label>
-        <div className="intent-box">
-          <p>{scenario.intent.description}</p>
-          <span>{scenario.intent.kind}</span>
-        </div>
+        {catalog ? (
+          <p className="catalog-source">
+            Source: {catalog.source} on {catalog.network}. Generated{" "}
+            {new Date(catalog.generatedAt).toLocaleTimeString()}.
+          </p>
+        ) : null}
+        {catalogLoading ? (
+          <div className="receipt-loading">
+            <span className="monitor-skeleton" />
+            <span className="monitor-skeleton tall" />
+          </div>
+        ) : scenario ? (
+          <div className="intent-box">
+            <p>{scenario.intent.description}</p>
+            <span>
+              {scenario.intent.kind} · expected {scenario.expectedVerdict}
+            </span>
+          </div>
+        ) : (
+          <div className="intent-box">
+            <p>Live scenario discovery is unavailable. Sentinel does not fall back to synthetic data.</p>
+            <span>Tatum Sui RPC required</span>
+          </div>
+        )}
         <ol className={`state-track ${runState}`} aria-label="Pre-flight progress">
           {runSteps.map((step, index) => (
             <li key={step} style={{ "--step-index": index } as CSSProperties}>
@@ -164,7 +250,12 @@ export function SentinelDashboard() {
             </li>
           ))}
         </ol>
-        <button className="primary-action" type="button" onClick={runAnalysis} disabled={loading}>
+        <button
+          className="primary-action"
+          type="button"
+          onClick={runAnalysis}
+          disabled={loading || catalogLoading || !scenario}
+        >
           {loading ? <Loader2 className="spin" size={18} /> : <Play size={18} />}
           {loading ? "Running checks" : "Run pre-flight check"}
         </button>
@@ -198,13 +289,13 @@ export function SentinelDashboard() {
               ) : (
                 <li>
                   <strong>No material findings</strong>
-                  <span>The action passed the configured pre-flight checks.</span>
+                  <span>The action passed the configured Sentinel policy checks.</span>
                 </li>
               )}
             </ul>
           </div>
         ) : (
-          <p className="muted">No verdict yet.</p>
+          <p className="muted">Select a live action and run Sentinel to generate a verdict.</p>
         )}
       </section>
 
@@ -277,7 +368,7 @@ export function SentinelDashboard() {
             </div>
           </dl>
         ) : (
-          <p className="muted">Awaiting evidence pack.</p>
+          <p className="muted">Walrus evidence appears after a live review completes.</p>
         )}
       </section>
 
@@ -296,7 +387,7 @@ export function SentinelDashboard() {
             ))}
           </ul>
         ) : (
-          <p className="muted">No receipts in this session.</p>
+          <p className="muted">Receipts from this browser session will appear here.</p>
         )}
       </section>
 

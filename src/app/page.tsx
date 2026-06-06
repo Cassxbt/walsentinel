@@ -2,27 +2,27 @@ import { SentinelDashboard } from "@/components/sentinel-dashboard";
 import { SiteNav } from "@/components/site-nav";
 
 const proofPoints = [
-  { value: "3", label: "demo verdicts" },
-  { value: "Tatum", label: "Sui context" },
-  { value: "Walrus", label: "evidence storage" }
+  { value: "Live", label: "Sui testnet actions" },
+  { value: "Tatum", label: "runtime chain context" },
+  { value: "Walrus", label: "verifiable evidence" }
 ];
 
 const architecture = [
   {
-    title: "Agent intent",
-    body: "A proposed Sui action is normalized before the agent can execute it."
+    title: "Live intent",
+    body: "The console loads real Sui testnet actors and package functions before an agent action is reviewed."
   },
   {
     title: "Tatum context",
-    body: "Server-side RPC checks wallet balance, owned objects, target metadata, and recent activity."
+    body: "Server-side RPC collects balances, owned objects, target metadata, and recent transaction context."
   },
   {
-    title: "Sentinel verdict",
-    body: "A deterministic policy engine returns ALLOW, WARN, or BLOCK with exact findings."
+    title: "Policy verdict",
+    body: "A deterministic policy engine returns ALLOW, WARN, or BLOCK with reviewer-readable findings."
   },
   {
-    title: "Walrus receipt",
-    body: "The evidence pack is stored on Walrus and later verified by recomputing its hash."
+    title: "Walrus evidence",
+    body: "The complete evidence pack is stored on Walrus and verified later by recomputing its hash."
   }
 ];
 
@@ -30,7 +30,7 @@ export default function Home() {
   return (
     <main className="site-shell" id="top">
       <a className="skip-link" href="#demo">
-        Skip to demo
+        Skip to review console
       </a>
 
       <SiteNav />
@@ -38,16 +38,17 @@ export default function Home() {
       <section className="project-hero">
         <div className="hero-copy">
           <p className="eyebrow">Tatum x Walrus Hackathon</p>
-          <h1>Pre-flight checks before AI agents touch Sui assets.</h1>
+          <h1>Verifiable pre-flight risk checks for Sui wallet agents.</h1>
           <p className="lede">
-            Sentinel gives an agent a verdict, a reason, and a Walrus-backed receipt before execution.
+            Walrus Sentinel evaluates live agent intents with Tatum Sui context, stores the evidence on
+            Walrus, and returns a receipt reviewers can verify after the decision.
           </p>
           <div className="hero-actions">
             <a className="primary-link" href="#demo">
-              Test the flow
+              Run live review
             </a>
             <a className="secondary-link" href="#architecture">
-              View architecture
+              Review architecture
             </a>
             <a className="tertiary-link" href="/monitor">
               Open monitor
@@ -62,7 +63,7 @@ export default function Home() {
           </div>
           <div className="terminal-rows">
             <p>
-              <span>01</span> Receive proposed Sui action
+              <span>01</span> Discover live Sui action
             </p>
             <p>
               <span>02</span> Pull Tatum chain context
@@ -71,7 +72,7 @@ export default function Home() {
               <span>03</span> Score policy risk
             </p>
             <p>
-              <span>04</span> Store evidence on Walrus
+              <span>04</span> Store verifiable Walrus evidence
             </p>
           </div>
         </aside>
@@ -88,10 +89,10 @@ export default function Home() {
 
       <section className="section-block demo-section" id="demo">
         <div className="section-heading">
-          <h2>Live demo workspace</h2>
+          <h2>Live agent review console</h2>
           <p>
-            Run a safe transfer, a review-worthy transfer, and a blocked package call. Each check stores a
-            verifiable evidence pack on Walrus.
+            Presets are generated from current Sui testnet activity through Tatum, then evaluated by
+            Sentinel and stored as verifiable Walrus evidence.
           </p>
         </div>
         <SentinelDashboard />
@@ -99,9 +100,10 @@ export default function Home() {
 
       <section className="section-block architecture-section" id="architecture">
         <div className="section-heading narrow">
-          <h2>Built as an agent guardrail, not a fake agent.</h2>
+          <h2>Built as an agent control plane, not a scripted walkthrough.</h2>
           <p>
-            Any AI wallet agent can call the same internal route shown in the demo before sending a transaction.
+            The same `/api/agent/check` route shown in the console can sit in front of an AI wallet
+            agent before it submits a Sui transaction.
           </p>
         </div>
         <div className="architecture-grid">
@@ -117,20 +119,20 @@ export default function Home() {
 
       <section className="section-block security-section" id="security">
         <div>
-          <h2>Security posture</h2>
+          <h2>Submission posture</h2>
           <p>
-            The app keeps Tatum credentials server-side, leaves `.env.local` and Vercel metadata out of git,
-            and publishes only sanitized defaults.
+            Credentials stay server-side, scenario discovery uses live Tatum RPC, and every review result
+            can be verified against the evidence pack stored on Walrus.
           </p>
         </div>
         <a className="secondary-link" href="#demo">
-          Return to demo
+          Return to console
         </a>
       </section>
 
       <footer className="site-footer">
         <span>Walrus Sentinel</span>
-        <span>Tatum RPC + Walrus evidence receipts for Sui agent actions.</span>
+        <span>Tatum Sui RPC + Walrus evidence receipts for agentic transaction review.</span>
       </footer>
     </main>
   );
